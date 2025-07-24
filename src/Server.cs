@@ -8,6 +8,13 @@ server.AcceptSocket(); // wait for client
 
 TcpClient client = server.AcceptTcpClient();
 
-string message = "HTTP/1.1 200 OK\r\n\r\n";
+const string httpVersion = "HTTP/1.1";
 
-client.Client.Send(Encoding.ASCII.GetBytes(message));
+const int successStatusCode = 200;
+
+string body = string.Empty;
+
+string finalMessage = $"{httpVersion}\n{successStatusCode}\n{body}";
+
+client.Client.Send(Encoding.ASCII.GetBytes(finalMessage));
+client.Close();
