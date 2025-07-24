@@ -4,9 +4,7 @@ using System.Text;
 
 TcpListener server = new (IPAddress.Any, 4221);
 server.Start();
-server.AcceptSocket(); // wait for client
-
-TcpClient client = server.AcceptTcpClient();
+Socket socket = server.AcceptSocket(); // wait for client
 
 const string httpVersion = "HTTP/1.1";
 
@@ -16,5 +14,5 @@ string body = string.Empty;
 
 string finalMessage = $"{httpVersion}\n{successStatusCode}\n{body}";
 
-client.Client.Send(Encoding.ASCII.GetBytes(finalMessage));
-client.Close();
+socket.Send(Encoding.ASCII.GetBytes(finalMessage));
+socket.Close();
