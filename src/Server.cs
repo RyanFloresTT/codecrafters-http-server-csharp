@@ -8,12 +8,12 @@ Socket socket = server.AcceptSocket(); // wait for client
 
 const string httpVersion = "HTTP/1.1";
 
-const int successStatusCode = 200;
+const string successStatusMessage = "200 OK";
 
 string headers = string.Empty;
 string body = string.Empty;
 
-string finalMessage = $"{httpVersion} {successStatusCode} \r\n{headers}\r\n{body}";
+string finalMessage = $"{httpVersion} {successStatusMessage} \r\n{headers}\r\n{body}";
 
 socket.Send(Encoding.ASCII.GetBytes(finalMessage));
 socket.Close();
