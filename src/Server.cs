@@ -10,9 +10,10 @@ const string httpVersion = "HTTP/1.1";
 
 const int successStatusCode = 200;
 
+string headers = string.Empty;
 string body = string.Empty;
 
-string finalMessage = $"{httpVersion}\n{successStatusCode}\n{body}";
+string finalMessage = $"{httpVersion} {successStatusCode}\n{headers}\n{body}";
 
 socket.Send(Encoding.ASCII.GetBytes(finalMessage));
 socket.Close();
