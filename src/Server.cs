@@ -13,7 +13,7 @@ const int successStatusCode = 200;
 string headers = string.Empty;
 string body = string.Empty;
 
-string finalMessage = $"{httpVersion} {successStatusCode} \n{headers}\n{body}";
+string finalMessage = $"{httpVersion} {successStatusCode} \r\n{headers}\r\n{body}";
 
 socket.Send(Encoding.ASCII.GetBytes(finalMessage));
 socket.Close();
