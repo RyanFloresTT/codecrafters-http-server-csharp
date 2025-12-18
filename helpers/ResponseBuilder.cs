@@ -27,14 +27,25 @@ public class ResponseBuilder {
         if (statusCode == "404")
             return sb.Append($"HTTP/1.1 {statusCode} Not Found\r\n\r\n");
 
-        sb.Append($"HTTP/1.1 {statusCode} OK\r\n");
-        sb.Append($"Content-Type: {contentType}\r\n");
+        if (statusCode != null) {
+            string statusMessage = GetStatusMessage(statusCode);
+            sb.Append($"HTTP/1.1 {statusCode} {statusMessage}\r\n");
+        }
 
         if (content == null) return sb;
 
+        sb.Append($"Content-Type: {contentType}\r\n");
         sb.Append($"Content-Length: {content.Length}\r\n\r\n");
         sb.Append($"{content}");
 
         return sb;
     }
+
+    static string GetStatusMessage(string sc) => sc switch {
+        "200" => "OK",
+        "201" => "Created",
+        "404" => "Not Found",
+        "405" => "Method Not Allowed",
+        _ => "Unknown Status Code"
+    };
 }

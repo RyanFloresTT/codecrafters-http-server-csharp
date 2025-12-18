@@ -75,7 +75,7 @@ public class HttpRequestHandler {
                 string body = requestParams[^1];
                 Console.WriteLine($"Received POST request with body: {body}");
                 await File.WriteAllTextAsync(filePath, body);
-                response = rb.WithStatusCode("201").WithContent("Created").Build();
+                response = rb.WithStatusCode("201").Build();
             }
             else
                 response = rb.WithStatusCode("405").WithContent("Method Not Allowed").Build();
