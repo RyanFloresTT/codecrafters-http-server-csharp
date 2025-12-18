@@ -29,12 +29,14 @@ public class ResponseBuilder {
 
         if (statusCode != null) {
             string statusMessage = GetStatusMessage(statusCode);
+
             sb.Append($"HTTP/1.1 {statusCode} {statusMessage}\r\n");
         }
 
-        if (content == null) return sb;
 
+        if (content == null) return sb;
         sb.Append($"Content-Type: {contentType}\r\n");
+
         sb.Append($"Content-Length: {content.Length}\r\n\r\n");
         sb.Append($"{content}");
 
