@@ -20,8 +20,10 @@ public class HttpRequestHandler {
 
         string request = Encoding.UTF8.GetString(requestBuffer);
 
+        //          0                           1                       2        ...              
         // GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
         string[] requestParams = request.Split("\r\n");
+        // GET /index.html HTTP/1.1 || Host: localhost:4221 || User-Agent: curl/7.64.1 || Accept: */*
 
         // GET /index.html HTTP/1.1\ -> /index.html
         string address = requestParams[0].Split(" ")[1];
@@ -37,7 +39,10 @@ public class HttpRequestHandler {
             response = rb.WithStatusCode("200").WithContent(randomString).Build();
         }
         else if (address.StartsWith("/user-agent")) {
-            string userAgentParam = requestParams[1];
+            string? userAgentParam = requestParams.FirstOrDefault(x => x.Contains("User-Agent"));
+
+            if (userAgentParam == null) return;
+
             string userAgent = userAgentParam.Split(" ")[1];
             response = rb.WithStatusCode("200").WithContent(userAgent).Build();
         }
