@@ -25,9 +25,16 @@ public class HttpRequestHandler {
         string[] requestParams = request.Split("\r\n");
         // GET /index.html HTTP/1.1 || Host: localhost:4221 || User-Agent: curl/7.64.1 || Accept: */*
 
+        Console.WriteLine("Full Request Params:");
+        foreach (string param in requestParams) Console.WriteLine(param);
+
         // GET /index.html HTTP/1.1\ -> /index.html
         string requestType = requestParams[0].Split(" ")[0];
         string address = requestParams[0].Split(" ")[1];
+        int? contentLength =
+            int.TryParse(requestParams.FirstOrDefault(x => x.StartsWith("Content-Length"))?.Split(" ")[1], out int cl)
+                ? cl
+                : null;
 
         ResponseBuilder rb = new();
 
@@ -72,9 +79,14 @@ public class HttpRequestHandler {
                 }
             }
             else if (requestType == "POST") {
+                if (contentLength == null) return;
+                int contentLengthInt = contentLength.Value;
                 string body = requestParams[^1];
-                Console.WriteLine($"Received POST request with body: {body}");
-                await File.WriteAllTextAsync(filePath, body);
+                byte[] bytes = Encoding.UTF8.GetBytes(body)[..(contentLengthInt * 3 - 1)];
+
+                Console.WriteLine($"Writing bytes: {Encoding.UTF8.GetString(bytes)}");
+
+                await File.WriteAllBytesAsync(filePath, bytes);
                 response = rb.WithStatusCode("201").Build();
             }
             else
