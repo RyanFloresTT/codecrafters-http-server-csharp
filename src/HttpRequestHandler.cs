@@ -21,11 +21,12 @@ public class HttpRequestHandler {
         string request = Encoding.UTF8.GetString(requestBuffer);
 
         //          0                           1                       2        ...              
-        // GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
+        // GET /index.html HTTP/1.1\r\nHost: localhost:4221\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n Body
         string[] requestParams = request.Split("\r\n");
         // GET /index.html HTTP/1.1 || Host: localhost:4221 || User-Agent: curl/7.64.1 || Accept: */*
 
         // GET /index.html HTTP/1.1\ -> /index.html
+        string requestType = requestParams[0].Split(" ")[0];
         string address = requestParams[0].Split(" ")[1];
 
         ResponseBuilder rb = new();
@@ -48,27 +49,36 @@ public class HttpRequestHandler {
         }
         else if (address.StartsWith("/files")) {
             string baseDirectory = directory ?? Path.Combine(AppContext.BaseDirectory, "files");
-
             string fileName = address.Split("/")[2];
             string filePath = Path.Combine(baseDirectory, fileName);
 
-            Console.WriteLine($"Serving file: {filePath}");
+            if (requestType == "GET") {
+                Console.WriteLine($"Serving file: {filePath}");
 
-            if (!File.Exists(filePath))
-                response = rb.WithStatusCode("404")
-                    .WithContent("404 Not Found")
-                    .Build();
-            else {
-                byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
-                string fileContent = Encoding.UTF8.GetString(fileBytes);
+                if (!File.Exists(filePath))
+                    response = rb.WithStatusCode("404")
+                        .WithContent("404 Not Found")
+                        .Build();
+                else {
+                    byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                    string fileContent = Encoding.UTF8.GetString(fileBytes);
 
-                Console.WriteLine($"File content: {fileContent}");
+                    Console.WriteLine($"File content: {fileContent}");
 
-                response = rb.WithStatusCode("200")
-                    .WithContentType("application/octet-stream")
-                    .WithContent(fileContent)
-                    .Build();
+                    response = rb.WithStatusCode("200")
+                        .WithContentType("application/octet-stream")
+                        .WithContent(fileContent)
+                        .Build();
+                }
             }
+            else if (requestType == "POST") {
+                string body = requestParams[^1];
+                Console.WriteLine($"Received POST request with body: {body}");
+                await File.WriteAllTextAsync(filePath, body);
+                response = rb.WithStatusCode("201").WithContent("Created").Build();
+            }
+            else
+                response = rb.WithStatusCode("405").WithContent("Method Not Allowed").Build();
         }
         else
             response = rb.WithStatusCode("404").WithContent("Not Found").Build();
