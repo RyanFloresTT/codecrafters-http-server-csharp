@@ -80,10 +80,9 @@ public class HttpRequestHandler {
             }
             else if (requestType == "POST") {
                 if (contentLength == null) return;
-                int contentLengthInt = contentLength.Value;
                 string body = requestParams[^1];
-                byte[] bytes = Encoding.UTF8.GetBytes(body)[..(contentLengthInt * 3 - 1)];
-
+                string sanitizedBody = body.TrimEnd('\0', ' ', '\r', '\n');
+                byte[] bytes = Encoding.UTF8.GetBytes(sanitizedBody);
                 Console.WriteLine($"Writing bytes: {Encoding.UTF8.GetString(bytes)}");
 
                 await File.WriteAllBytesAsync(filePath, bytes);
