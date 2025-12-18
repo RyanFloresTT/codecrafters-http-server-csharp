@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using codecrafters_http_server;
+using codecrafters_http_server.helpers;
 
 TcpListener server = new(IPAddress.Any, 4221);
 
@@ -9,6 +10,8 @@ try {
     server.Start();
     Console.WriteLine("Server started");
 
+    string? baseDirectory = ArgsHelper.ParseDirectoryFlag(args);
+
     while (true) {
         TcpClient client = await server.AcceptTcpClientAsync();
         Console.WriteLine("Client connected!");
@@ -16,7 +19,7 @@ try {
         _ = Task.Run(async () => {
             HttpRequestHandler handler = new();
             try {
-                await handler.Serve(client);
+                await handler.Serve(client, baseDirectory);
             }
             catch (Exception ex) {
                 Console.WriteLine($"Error while serving a client: {ex.Message}");

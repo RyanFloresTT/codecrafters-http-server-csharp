@@ -7,7 +7,7 @@ namespace codecrafters_http_server;
 public class HttpRequestHandler {
     readonly string[] endpoints = ["index.html"];
 
-    public async Task Serve(TcpClient client) {
+    public async Task Serve(TcpClient client, string? directory = null) {
         NetworkStream stream = client.GetStream();
 
         byte[] requestBuffer = new byte[1024];
@@ -47,7 +47,7 @@ public class HttpRequestHandler {
             response = rb.WithStatusCode("200").WithContent(userAgent).Build();
         }
         else if (address.StartsWith("/files")) {
-            string baseDirectory = Path.Combine(AppContext.BaseDirectory, "files");
+            string baseDirectory = directory ?? Path.Combine(AppContext.BaseDirectory, "files");
 
             string fileName = address.Split("/")[2];
             string filePath = Path.Combine(baseDirectory, fileName);
