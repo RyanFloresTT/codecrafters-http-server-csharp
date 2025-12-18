@@ -46,13 +46,36 @@ public class HttpRequestHandler {
             string userAgent = userAgentParam.Split(" ")[1];
             response = rb.WithStatusCode("200").WithContent(userAgent).Build();
         }
+        else if (address.StartsWith("/files")) {
+            string baseDirectory = Path.Combine(AppContext.BaseDirectory, "files");
+
+            string fileName = address.Split("/")[2];
+            string filePath = Path.Combine(baseDirectory, fileName);
+
+            Console.WriteLine($"Serving file: {filePath}");
+
+            if (!File.Exists(filePath))
+                response = rb.WithStatusCode("404")
+                    .WithContent("404 Not Found")
+                    .Build();
+            else {
+                byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                string fileContent = Encoding.UTF8.GetString(fileBytes);
+
+                Console.WriteLine($"File content: {fileContent}");
+
+                response = rb.WithStatusCode("200")
+                    .WithContentType("application/octet-stream")
+                    .WithContent(fileContent)
+                    .Build();
+            }
+        }
         else
             response = rb.WithStatusCode("404").WithContent("Not Found").Build();
 
         byte[] responseData = Encoding.UTF8.GetBytes(response.ToString());
         await stream.WriteAsync(responseData);
 
-        client.Close();
         Console.WriteLine("Client disconnected.");
     }
 }
