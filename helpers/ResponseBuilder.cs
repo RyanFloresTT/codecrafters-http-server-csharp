@@ -34,11 +34,13 @@ public class ResponseBuilder {
         }
 
 
-        if (content == null) return sb;
-        sb.Append($"Content-Type: {contentType}\r\n");
-
-        sb.Append($"Content-Length: {content.Length}\r\n\r\n");
-        sb.Append($"{content}");
+        if (content == null)
+            sb.Append("\r\n");
+        else {
+            sb.Append($"Content-Type: {contentType}\r\n");
+            sb.Append($"Content-Length: {content.Length}\r\n\r\n");
+            sb.Append($"{content}");
+        }
 
         return sb;
     }
