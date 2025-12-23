@@ -37,8 +37,11 @@ public class HttpRequestHandler {
                 ? cl
                 : null;
 
-        var acceptEncodings = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"))?.Split(" ")[1]
-            .Split(",").ToList();
+        string? acceptEncodingParam = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"));
+        var acceptEncodingsEnumerable = acceptEncodingParam?.Split(":")[1].Split(",").Select(x => x.Trim());
+
+        var acceptEncodings = acceptEncodingsEnumerable.ToList();
+        foreach (string enc in acceptEncodings) Console.WriteLine(enc);
 
         ResponseBuilder rb = new();
 
@@ -51,9 +54,8 @@ public class HttpRequestHandler {
 
             rb.WithStatusCode("200").WithContent(randomString);
 
-            if (acceptEncodings is not null)
-                if (acceptEncodings.Any(IsAcceptableEncoding))
-                    rb.WithHeader("Content-Encoding", "gzip");
+            if (acceptEncodings.Any(IsAcceptableEncoding))
+                rb.WithHeader("Content-Encoding", "gzip");
 
             response = rb.Build();
         }
@@ -111,5 +113,5 @@ public class HttpRequestHandler {
         Console.WriteLine("Client disconnected.");
     }
 
-    public bool IsAcceptableEncoding(string encoding) => encodings.Contains(encoding);
+    bool IsAcceptableEncoding(string encoding) => encodings.Contains(encoding);
 }
