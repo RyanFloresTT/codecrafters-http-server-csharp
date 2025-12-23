@@ -38,8 +38,6 @@ public class HttpRequestHandler {
 
         string? acceptEncoding = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"))?.Split(" ")[1];
 
-        Console.WriteLine($"Accept-encoding: {acceptEncoding}");
-
         ResponseBuilder rb = new();
 
         StringBuilder response;
@@ -51,7 +49,10 @@ public class HttpRequestHandler {
 
             rb.WithStatusCode("200").WithContent(randomString);
 
-            if (acceptEncoding == "gzip") rb.WithHeader("Content-Encoding", "gzip");
+            if (acceptEncoding == "gzip") {
+                Console.WriteLine("Compressing response with gzip.");
+                rb.WithHeader("Content-Encoding", "gzip");
+            }
 
             response = rb.Build();
         }

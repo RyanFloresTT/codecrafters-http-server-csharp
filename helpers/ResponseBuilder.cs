@@ -3,10 +3,10 @@
 namespace codecrafters_http_server.helpers;
 
 public class ResponseBuilder {
+    readonly StringBuilder headers = new();
     readonly StringBuilder sb = new();
     string? content;
     string contentType = "text/plain";
-    readonly StringBuilder headers = new();
     string? statusCode;
 
     public ResponseBuilder WithStatusCode(string sc) {
@@ -43,10 +43,12 @@ public class ResponseBuilder {
         if (content == null)
             sb.Append("\r\n");
         else {
+            if (headers.Length > 0) sb.Append(headers);
             sb.Append($"Content-Type: {contentType}\r\n");
             sb.Append($"Content-Length: {content.Length}\r\n\r\n");
             sb.Append($"{content}");
         }
+
 
         return sb;
     }
