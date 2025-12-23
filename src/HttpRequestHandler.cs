@@ -55,11 +55,9 @@ public class HttpRequestHandler {
             string randomString = address.Split("/")[2];
             byte[] contentBytes;
 
-            rb.WithStatusCode("200").WithContent(randomString);
-
             if (acceptEncodings.Any(IsAcceptableEncoding)) {
                 using MemoryStream compressedStream = new();
-                await using (GZipStream gzip = new(compressedStream, CompressionMode.Compress, true)) {
+                await using (GZipStream gzip = new(compressedStream, CompressionMode.Compress, false)) {
                     byte[] stringBytes = Encoding.UTF8.GetBytes(randomString);
                     gzip.Write(stringBytes, 0, stringBytes.Length);
                 }
@@ -67,6 +65,7 @@ public class HttpRequestHandler {
                 contentBytes = compressedStream.ToArray();
 
                 rb.WithHeader("Content-Encoding", "gzip");
+                rb.WithContentType("text/plain");
             }
             else
                 contentBytes = Encoding.UTF8.GetBytes(randomString);
