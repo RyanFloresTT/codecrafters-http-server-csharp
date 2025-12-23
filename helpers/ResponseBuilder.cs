@@ -6,6 +6,7 @@ public class ResponseBuilder {
     readonly StringBuilder sb = new();
     string? content;
     string contentType = "text/plain";
+    readonly StringBuilder headers = new();
     string? statusCode;
 
     public ResponseBuilder WithStatusCode(string sc) {
@@ -20,6 +21,11 @@ public class ResponseBuilder {
 
     public ResponseBuilder WithContentType(string ct) {
         contentType = ct;
+        return this;
+    }
+
+    public ResponseBuilder WithHeader(string header, string value) {
+        headers.Append($"{header}: {value}\r\n");
         return this;
     }
 

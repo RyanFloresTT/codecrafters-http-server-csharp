@@ -36,6 +36,10 @@ public class HttpRequestHandler {
                 ? cl
                 : null;
 
+        string? acceptEncoding = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"))?.Split(" ")[1];
+
+        Console.WriteLine($"Accept-encoding: {acceptEncoding}");
+
         ResponseBuilder rb = new();
 
         StringBuilder response;
@@ -44,7 +48,12 @@ public class HttpRequestHandler {
             response = rb.WithStatusCode("200").WithContent("").Build();
         else if (address.StartsWith("/echo")) {
             string randomString = address.Split("/")[2];
-            response = rb.WithStatusCode("200").WithContent(randomString).Build();
+
+            rb.WithStatusCode("200").WithContent(randomString);
+
+            if (acceptEncoding == "gzip") rb.WithHeader("Content-Encoding", "gzip");
+
+            response = rb.Build();
         }
         else if (address.StartsWith("/user-agent")) {
             string? userAgentParam = requestParams.FirstOrDefault(x => x.Contains("User-Agent"));

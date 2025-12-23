@@ -8,7 +8,7 @@ TcpListener server = new(IPAddress.Any, 4221);
 // Start the server and accept multiple clients concurrently
 try {
     server.Start();
-    Console.WriteLine("Server started");
+    Console.WriteLine("Server started at localhost:4221.");
 
     string? baseDirectory = ArgsHelper.ParseDirectoryFlag(args);
 
