@@ -59,7 +59,7 @@ public class HttpRequestHandler {
 
             if (acceptEncodings.Any(IsAcceptableEncoding)) {
                 using MemoryStream compressedStream = new();
-                await using (GZipStream gzip = new(compressedStream, CompressionMode.Compress)) {
+                await using (GZipStream gzip = new(compressedStream, CompressionMode.Compress, true)) {
                     byte[] stringBytes = Encoding.UTF8.GetBytes(randomString);
                     gzip.Write(stringBytes, 0, stringBytes.Length);
                 }
