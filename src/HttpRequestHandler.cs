@@ -5,6 +5,7 @@ using codecrafters_http_server.helpers;
 namespace codecrafters_http_server;
 
 public class HttpRequestHandler {
+    readonly string[] encodings = ["gzip"];
     readonly string[] endpoints = ["index.html"];
 
     public async Task Serve(TcpClient client, string? directory = null) {
@@ -36,7 +37,8 @@ public class HttpRequestHandler {
                 ? cl
                 : null;
 
-        string? acceptEncoding = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"))?.Split(" ")[1];
+        var acceptEncodings = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"))?.Split(" ")[1]
+            .Split(",").ToList();
 
         ResponseBuilder rb = new();
 
@@ -49,10 +51,9 @@ public class HttpRequestHandler {
 
             rb.WithStatusCode("200").WithContent(randomString);
 
-            if (acceptEncoding == "gzip") {
-                Console.WriteLine("Compressing response with gzip.");
-                rb.WithHeader("Content-Encoding", "gzip");
-            }
+            if (acceptEncodings is not null)
+                if (acceptEncodings.Any(IsAcceptableEncoding))
+                    rb.WithHeader("Content-Encoding", "gzip");
 
             response = rb.Build();
         }
@@ -109,4 +110,6 @@ public class HttpRequestHandler {
 
         Console.WriteLine("Client disconnected.");
     }
+
+    public bool IsAcceptableEncoding(string encoding) => encodings.Contains(encoding);
 }
