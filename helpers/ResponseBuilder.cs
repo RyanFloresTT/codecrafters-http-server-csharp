@@ -19,6 +19,10 @@ public class ResponseBuilder {
         return this;
     }
 
+    public void WithContent(byte[] contentBytes) {
+        content = Encoding.UTF8.GetString(contentBytes);
+    }
+
     public ResponseBuilder WithContentType(string ct) {
         contentType = ct;
         return this;

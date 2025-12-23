@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.IO.Compression;
+using System.Net.Sockets;
 using System.Text;
 using codecrafters_http_server.helpers;
 
@@ -48,19 +49,29 @@ public class HttpRequestHandler {
 
         ResponseBuilder rb = new();
 
-        StringBuilder response;
-
         if ((address[0] is '/' && endpoints.Contains(address[1..])) || address is "/" or null)
-            response = rb.WithStatusCode("200").WithContent("").Build();
+            rb.WithStatusCode("200").WithContent("");
         else if (address.StartsWith("/echo")) {
             string randomString = address.Split("/")[2];
+            byte[] contentBytes;
 
             rb.WithStatusCode("200").WithContent(randomString);
 
-            if (acceptEncodings.Any(IsAcceptableEncoding))
-                rb.WithHeader("Content-Encoding", "gzip");
+            if (acceptEncodings.Any(IsAcceptableEncoding)) {
+                using MemoryStream compressedStream = new();
+                await using (GZipStream gzip = new(compressedStream, CompressionMode.Compress)) {
+                    byte[] stringBytes = Encoding.UTF8.GetBytes(randomString);
+                    gzip.Write(stringBytes, 0, stringBytes.Length);
+                }
 
-            response = rb.Build();
+                contentBytes = compressedStream.ToArray();
+
+                rb.WithHeader("Content-Encoding", "gzip");
+            }
+            else
+                contentBytes = Encoding.UTF8.GetBytes(randomString);
+
+            rb.WithStatusCode("200").WithContent(contentBytes);
         }
         else if (address.StartsWith("/user-agent")) {
             string? userAgentParam = requestParams.FirstOrDefault(x => x.Contains("User-Agent"));
@@ -68,7 +79,7 @@ public class HttpRequestHandler {
             if (userAgentParam == null) return;
 
             string userAgent = userAgentParam.Split(" ")[1];
-            response = rb.WithStatusCode("200").WithContent(userAgent).Build();
+            rb.WithStatusCode("200").WithContent(userAgent);
         }
         else if (address.StartsWith("/files")) {
             string baseDirectory = directory ?? Path.Combine(AppContext.BaseDirectory, "files");
@@ -79,19 +90,17 @@ public class HttpRequestHandler {
                 Console.WriteLine($"Serving file: {filePath}");
 
                 if (!File.Exists(filePath))
-                    response = rb.WithStatusCode("404")
-                        .WithContent("404 Not Found")
-                        .Build();
+                    rb.WithStatusCode("404")
+                        .WithContent("404 Not Found");
                 else {
                     byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
                     string fileContent = Encoding.UTF8.GetString(fileBytes);
 
                     Console.WriteLine($"File content: {fileContent}");
 
-                    response = rb.WithStatusCode("200")
+                    rb.WithStatusCode("200")
                         .WithContentType("application/octet-stream")
-                        .WithContent(fileContent)
-                        .Build();
+                        .WithContent(fileContent);
                 }
             }
             else if (requestType == "POST") {
@@ -102,15 +111,15 @@ public class HttpRequestHandler {
                 Console.WriteLine($"Writing bytes: {Encoding.UTF8.GetString(bytes)}");
 
                 await File.WriteAllBytesAsync(filePath, bytes);
-                response = rb.WithStatusCode("201").Build();
+                rb.WithStatusCode("201");
             }
             else
-                response = rb.WithStatusCode("405").WithContent("Method Not Allowed").Build();
+                rb.WithStatusCode("405").WithContent("Method Not Allowed");
         }
         else
-            response = rb.WithStatusCode("404").WithContent("Not Found").Build();
+            rb.WithStatusCode("404").WithContent("Not Found");
 
-        byte[] responseData = Encoding.UTF8.GetBytes(response.ToString());
+        byte[] responseData = Encoding.UTF8.GetBytes(rb.Build().ToString());
         await stream.WriteAsync(responseData);
 
         Console.WriteLine("Client disconnected.");
