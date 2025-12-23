@@ -39,8 +39,11 @@ public class HttpRequestHandler {
 
         string? acceptEncodingParam = requestParams.FirstOrDefault(x => x.StartsWith("Accept-Encoding"));
         var acceptEncodingsEnumerable = acceptEncodingParam?.Split(":")[1].Split(",").Select(x => x.Trim());
+        List<string> acceptEncodings = [];
 
-        var acceptEncodings = acceptEncodingsEnumerable.ToList();
+        if (acceptEncodingsEnumerable != null)
+            acceptEncodings = acceptEncodingsEnumerable.ToList();
+
         foreach (string enc in acceptEncodings) Console.WriteLine(enc);
 
         ResponseBuilder rb = new();
